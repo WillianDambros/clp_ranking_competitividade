@@ -53,6 +53,8 @@ arquivo <- arquivo |> dplyr::rename_with(~arquivo_variaveis_vetor,
 #                      values_to = "delta_ods_value") |> 
 #  dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 # Opção 2
+      
+      # Preparing to retrieve the ODS column
 
 arquivo_ods <- arquivo |>
   dplyr::filter(!stringr::str_detect(
@@ -65,6 +67,8 @@ arquivo_ods <- arquivo |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
 arquivo_ods
+
+       # Preparing to retrieve the normalizado column
 
 arquivo_ods_normalizado <- arquivo |>
   dplyr::filter(!stringr::str_detect(
@@ -90,7 +94,10 @@ arquivo_ods_normalizado
 #                      values_to = "ranking_value") |>
 #  dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-arquivo_ranking
+
+             # Preparing to retrieve the ranking columns both years
+
+                   # necessary conditions to extract the correct year update
 
 imediato_atual_condicao <- if(arquivo |> dplyr::select(
   tidyselect::ends_with(as.character(lubridate::year(lubridate::today())))) |>
@@ -112,32 +119,71 @@ retrasado <-
                              as.character(
                                lubridate::year(lubridate::today())-2)))
 
+                   # current year necessary to rename the columns
+
+arquivo_ranking_atual_ano <- if(ncol(imediato_atual)!=0){ 
+  as.character(lubridate::year(lubridate::today()))} else {
+    as.character(lubridate::year(lubridate::today())-1)}
+
+                   # retrieving the current year ranking
+
 arquivo_ranking_atual <-
-  (if(nrow(imediato_atual) != 0) {passado} else {imediato_atual}) |>
+  (if(ncol(imediato_atual) != 0) {imediato_atual} else {passado}) |>
   dplyr::filter(!stringr::str_detect(`ESTADO`,
                                      "Ranking|ESTADO|Máximo|Mínimo")) |>
   tidyr::pivot_longer(matches("Ranking"),
-                      names_to = "ranking_ano_imediato",
-                      values_to = "ranking_imediato_value") |>
+                      names_to = paste0("ranking_",arquivo_ranking_atual_ano),
+                      values_to = 
+                        paste0(
+                          "ranking_", arquivo_ranking_atual_ano,"_value")) |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
 arquivo_ranking_atual
 
-imediato_atual |> nrow()
+                     # past year necessary to rename the columns
+
+arquivo_ranking_passado_ano <- if(ncol(imediato_atual)!=0){ 
+  as.character(lubridate::year(lubridate::today())-1)} else {
+    as.character(lubridate::year(lubridate::today())-2)}
+
+arquivo_ranking_passado_ano
+
+                      # retrieving the last year ranking
+
 arquivo_ranking_passado <-
-  (if(nrow(imediato_atual) != 0) {retrasado} else {passado}) |>
+  (if(ncol(imediato_atual) != 0) {passado} else {retrasado}) |>
   dplyr::filter(!stringr::str_detect(`ESTADO`,
                                      "Ranking|ESTADO|Máximo|Mínimo")) |>
   tidyr::pivot_longer(matches("Ranking"),
-                      names_to = "ranking_ano_imediato",
-                      values_to = "ranking_imediato_value") |>
+                      names_to = paste0("ranking_",
+                                        arquivo_ranking_passado_ano),
+                      values_to = paste0(
+                        "ranking_",arquivo_ranking_passado_ano,"_value")) |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-arquivo_ranking_atual
 arquivo_ranking_passado
 
+                      # Preparing to retrieve the delta column 
 
-nrow(imediato_atual) != 0
+arquivo_ods_delta_posicao <- arquivo |>
+  dplyr::filter(!stringr::str_detect(
+    `ESTADO`,
+    "Ranking|ESTADO|Máximo|Mínimo")) |>
+  dplyr::select(matches("ESTADO|Região"),matches("Delta")) |>
+  tidyr::pivot_longer(matches("Delta"),
+                      names_to = "ods_delta_posicao",
+                      values_to = "ods_delta_posicao_value") |>
+  dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
+
+
+
+arquivo_ods |> nrow()
+arquivo_ods_normalizado |> nrow()
+arquivo_ranking_atual |> nrow()
+arquivo_ranking_passado |> nrow()
+arquivo_ods_delta_posicao |> nrow()
+
+
 
 
 arquivo_juntado <- arquivo_ods |>
