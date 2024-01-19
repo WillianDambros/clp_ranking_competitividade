@@ -170,21 +170,74 @@ arquivo_ods_delta_posicao <- arquivo |>
     `ESTADO`,
     "Ranking|ESTADO|Máximo|Mínimo")) |>
   dplyr::select(matches("ESTADO|Região"),matches("Delta")) |>
+  dplyr::select(!"Delta de posição ODS" ) |>
   tidyr::pivot_longer(matches("Delta"),
                       names_to = "ods_delta_posicao",
                       values_to = "ods_delta_posicao_value") |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-
+arquivo_ods_delta_posicao |> names()
 
 arquivo_ods |> nrow()
 arquivo_ods_normalizado |> nrow()
-arquivo_ranking_atual |> nrow()
-arquivo_ranking_passado |> nrow()
+arquivo_ranking_atual |> nrow() # atualizar solução
+arquivo_ranking_passado |> nrow() # atulizar solução
 arquivo_ods_delta_posicao |> nrow()
 
+arquivo_ods_delta_posicao <- arquivo |>
+  dplyr::filter(!stringr::str_detect(
+    `ESTADO`,
+    "Ranking|ESTADO|Máximo|Mínimo")) |>
+  dplyr::select_if()
+?dplyr::select_if
 
 
+arquivo_ods_delta_posicao <- arquivo |>
+  dplyr::filter(!stringr::str_detect(
+    `ESTADO`,
+    "Ranking|ESTADO|Máximo|Mínimo")) |>
+  dplyr::select(matches("ESTADO|Região"),
+                dplyr::where(~ any(stringr::str_detect(., "[[:digit:]]"))) & matches("Delta")
+                ) |> dplyr::select(dplyr::where(~ any(stringr::str_detect(., "[[:digit:]]"))))
+  
+arquivo_ods_delta_posicao <- arquivo |>
+  dplyr::filter(!stringr::str_detect(
+    `ESTADO`,
+    "Ranking|ESTADO|Máximo|Mínimo")) |> dplyr::select(dplyr::where(~ any(stringr::str_detect(., "[[:digit:]]")))) |> 
+  dplyr::select(matches("Delta")) |> dplyr::select(!"Delta de posição ODS")
+# "Delta de posição ODS" está como uma arquivo possivelmente númerico contudo se selecionar sem o carctere funciona
+
+
+arquivo_ods_delta_posicao |> names()
+#
+
+
+arquivo_ods_delta_posicao <- arquivo |>
+  dplyr::filter(!stringr::str_detect(
+    `ESTADO`,
+    "Ranking|ESTADO|Máximo|Mínimo")) |>
+  dplyr::select(matches("^Delta[0-9]+"))
+
+arquivo_ods_delta_posicao <- arquivo |>
+  dplyr::filter(!stringr::str_detect(
+    `ESTADO`,
+    "Ranking|ESTADO|Máximo|Mínimo")) |>
+  dplyr::select(matches("Delta"), matches("[0-9]+"))
+
+arquivo_ods_delta_posicao <- arquivo |>
+  dplyr::filter(!stringr::str_detect(
+    `ESTADO`,
+    "Ranking|ESTADO|Máximo|Mínimo")) |>
+  dplyr::select(matches("Delta|[0-9]"))
+
+
+
+
+arquivo_ods_delta_posicao |> names()
+
+arquivo_ods_delta_posicao |> names() |> stringr::str_detect("[:digit:]")
+
+names(arquivo) |> stringr::str_detect("[:digit:]")
 
 arquivo_juntado <- arquivo_ods |>
   dplyr::bind_cols(dplyr::select(arquivo_ods_normalizado, matches("value"))) |>
