@@ -38,21 +38,6 @@ arquivo <- readxl::read_excel(arquivo_local, arquivo_folhas, col_names = F,
 arquivo <- arquivo |> dplyr::rename_with(~arquivo_variaveis_vetor,
                                          .cols = 1:ncol(arquivo))
 
-#arquivo <- arquivo |>
-#  dplyr::filter(!stringr::str_detect(
-#    `ESTADO`,
-#    "Ranking|ESTADO|Máximo|Mínimo")) |>
-#  #dplyr::select(!`TOTAL ANO`) |>
-#  tidyr::pivot_longer(dplyr::starts_with("ODS") & !matches("normalizado"),
-#                      names_to = "ods", values_to = "ods_value") |>
-#  tidyr::pivot_longer(matches("normalizado"), names_to = "normalizado_ods",
-#                      values_to = "normalizado_ods_value") |>
-#  tidyr::pivot_longer(matches("Ranking"), names_to = "ranking_ods",
-#                      values_to = "ranking_ods_value") |>
-#  tidyr::pivot_longer(matches("Delta"), names_to = "delta_ods",
-#                      values_to = "delta_ods_value") |> 
-#  dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
-# Opção 2
       
       # Preparing to retrieve the ODS column
 
@@ -66,8 +51,6 @@ arquivo_ods <- arquivo |>
                       names_to = "ods", values_to = "ods_value") |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-arquivo_ods
-
        # Preparing to retrieve the normalizado column
 
 arquivo_ods_normalizado <- arquivo |>
@@ -80,25 +63,12 @@ arquivo_ods_normalizado <- arquivo |>
                       values_to = "ods_normalizado_value") |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-arquivo_ods_normalizado
-
-#arquivo_ranking <- arquivo |>
-#  dplyr::filter(!stringr::str_detect(
-#    `ESTADO`,
-#    "Ranking|ESTADO|Máximo|Mínimo")) |>
-#  dplyr::select(matches("ESTADO|Região"),
-#                matches(paste0("Ranking ",
-#                               lubridate::year(lubridate::today())))) |>
-#  tidyr::pivot_longer(matches("Ranking"),
-#                      names_to = "ranking",
-#                      values_to = "ranking_value") |>
-#  dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
-
 
              # Preparing to retrieve the ranking columns both years
 
                    # necessary conditions to extract the correct year update
 
+           # the actual year require this condition to return or not any column
 imediato_atual_condicao <- if(arquivo |> dplyr::select(
   tidyselect::ends_with(as.character(lubridate::year(lubridate::today())))) |>
   ncol() != 0){"ESTADO|Região"} else {"nao_ha_valor"}
@@ -106,18 +76,28 @@ imediato_atual_condicao <- if(arquivo |> dplyr::select(
 imediato_atual <-
   arquivo |> dplyr::select(matches(imediato_atual_condicao),
                           tidyselect::ends_with(
-                            as.character(lubridate::year(lubridate::today()))))
+                            as.character(
+                              lubridate::year(lubridate::today())))) |>
+  dplyr::select(
+    !tidyselect::contains(paste0("Ranking ODS ",
+                                 lubridate::year(lubridate::today()))))
+  
 
 passado <-
   arquivo |> dplyr::select(matches("ESTADO|Região"),
                            tidyselect::ends_with(
                              as.character(
-                               lubridate::year(lubridate::today())-1)))
+                               lubridate::year(lubridate::today())-1))) |>
+  dplyr::select(!contains(paste0("Ranking ODS ",
+                                 lubridate::year(lubridate::today())-1)))
+
 retrasado <- 
   arquivo |> dplyr::select(matches("ESTADO|Região"),
                            tidyselect::ends_with(
                              as.character(
-                               lubridate::year(lubridate::today())-2)))
+                               lubridate::year(lubridate::today())-2))) |>
+  dplyr::select(!contains(paste0("Ranking ODS ",
+                                 lubridate::year(lubridate::today())-2)))
 
                    # current year necessary to rename the columns
 
@@ -138,7 +118,6 @@ arquivo_ranking_atual <-
                           "ranking_", arquivo_ranking_atual_ano,"_value")) |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-arquivo_ranking_atual
 
                      # past year necessary to rename the columns
 
@@ -146,7 +125,6 @@ arquivo_ranking_passado_ano <- if(ncol(imediato_atual)!=0){
   as.character(lubridate::year(lubridate::today())-1)} else {
     as.character(lubridate::year(lubridate::today())-2)}
 
-arquivo_ranking_passado_ano
 
                       # retrieving the last year ranking
 
@@ -161,7 +139,6 @@ arquivo_ranking_passado <-
                         "ranking_",arquivo_ranking_passado_ano,"_value")) |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-arquivo_ranking_passado
 
                       # Preparing to retrieve the delta column 
 
@@ -170,92 +147,75 @@ arquivo_ods_delta_posicao <- arquivo |>
     `ESTADO`,
     "Ranking|ESTADO|Máximo|Mínimo")) |>
   dplyr::select(matches("ESTADO|Região"),matches("Delta")) |>
-  dplyr::select(!"Delta de posição ODS" ) |>
+  dplyr::select(!contains("Delta de posição ODS")) |>
   tidyr::pivot_longer(matches("Delta"),
                       names_to = "ods_delta_posicao",
                       values_to = "ods_delta_posicao_value") |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-arquivo_ods_delta_posicao |> names()
 
-arquivo_ods |> nrow()
-arquivo_ods_normalizado |> nrow()
-arquivo_ranking_atual |> nrow() # atualizar solução
-arquivo_ranking_passado |> nrow() # atulizar solução
-arquivo_ods_delta_posicao |> nrow()
-
-arquivo_ods_delta_posicao <- arquivo |>
-  dplyr::filter(!stringr::str_detect(
-    `ESTADO`,
-    "Ranking|ESTADO|Máximo|Mínimo")) |>
-  dplyr::select_if()
-?dplyr::select_if
-
-
-arquivo_ods_delta_posicao <- arquivo |>
-  dplyr::filter(!stringr::str_detect(
-    `ESTADO`,
-    "Ranking|ESTADO|Máximo|Mínimo")) |>
-  dplyr::select(matches("ESTADO|Região"),
-                dplyr::where(~ any(stringr::str_detect(., "[[:digit:]]"))) & matches("Delta")
-                ) |> dplyr::select(dplyr::where(~ any(stringr::str_detect(., "[[:digit:]]"))))
-  
-arquivo_ods_delta_posicao <- arquivo |>
-  dplyr::filter(!stringr::str_detect(
-    `ESTADO`,
-    "Ranking|ESTADO|Máximo|Mínimo")) |> dplyr::select(dplyr::where(~ any(stringr::str_detect(., "[[:digit:]]")))) |> 
-  dplyr::select(matches("Delta")) |> dplyr::select(!"Delta de posição ODS")
-# "Delta de posição ODS" está como uma arquivo possivelmente númerico contudo se selecionar sem o carctere funciona
-
-
-arquivo_ods_delta_posicao |> names()
-#
-
-
-arquivo_ods_delta_posicao <- arquivo |>
-  dplyr::filter(!stringr::str_detect(
-    `ESTADO`,
-    "Ranking|ESTADO|Máximo|Mínimo")) |>
-  dplyr::select(matches("^Delta[0-9]+"))
-
-arquivo_ods_delta_posicao <- arquivo |>
-  dplyr::filter(!stringr::str_detect(
-    `ESTADO`,
-    "Ranking|ESTADO|Máximo|Mínimo")) |>
-  dplyr::select(matches("Delta"), matches("[0-9]+"))
-
-arquivo_ods_delta_posicao <- arquivo |>
-  dplyr::filter(!stringr::str_detect(
-    `ESTADO`,
-    "Ranking|ESTADO|Máximo|Mínimo")) |>
-  dplyr::select(matches("Delta|[0-9]"))
-
-
-
-
-arquivo_ods_delta_posicao |> names()
-
-arquivo_ods_delta_posicao |> names() |> stringr::str_detect("[:digit:]")
-
-names(arquivo) |> stringr::str_detect("[:digit:]")
+# bind all the parts
 
 arquivo_juntado <- arquivo_ods |>
   dplyr::bind_cols(dplyr::select(arquivo_ods_normalizado, matches("value"))) |>
   dplyr::bind_cols(dplyr::select(arquivo_ranking_passado, matches("value"))) |>
-  dplyr::bind_cols(dplyr::select(arquivo_ranking_atual, matches("value")))
+  dplyr::bind_cols(dplyr::select(arquivo_ranking_atual, matches("value"))) |>
+  dplyr::bind_cols(dplyr::select(arquivo_ods_delta_posicao, matches("value")))
 
-arquivo_juntado <- 
-  dplyr::bind_cols(arquivo_ods,
-                   dplyr::select(arquivo_ranking, matches("value")))
+# adding order and descriptive columns
+
+arquivo_juntado <- arquivo_juntado |>
+  dplyr::mutate(ods_ordem =
+                  dplyr::case_when(
+                    ods == "ODS 1" ~ 1,
+                    ods == "ODS 2" ~ 2,
+                    ods == "ODS 3" ~ 3,
+                    ods == "ODS 4" ~ 4,
+                    ods == "ODS 5" ~ 5,
+                    ods == "ODS 6" ~ 6,
+                    ods == "ODS 7" ~ 7,
+                    ods == "ODS 8" ~ 8,
+                    ods == "ODS 9" ~ 9,
+                    ods == "ODS 10" ~ 10,
+                    ods == "ODS 11" ~ 11,
+                    ods == "ODS 12" ~ 12,
+                    ods == "ODS 13" ~ 13,
+                    ods == "ODS 14" ~ 14,
+                    ods == "ODS 15" ~ 15,
+                    ods == "ODS 16" ~ 16,
+                    ods == "ODS 17" ~ 17,
+                  ), .keep = "all")
+
+
+arquivo_juntado <- arquivo_juntado |>
+  dplyr::mutate(ods_descricao =
+                  dplyr::case_when(
+                    ods == "ODS 1" ~ "Erradicação da pobreza",
+                    ods == "ODS 2" ~ "Fome Zero e Agricultura Sustentável",
+                    ods == "ODS 3" ~ "Saúde e Bem-Estar",
+                    ods == "ODS 4" ~ "Educação de Qualidade",
+                    ods == "ODS 5" ~ "Igualdade de Gênero",
+                    ods == "ODS 6" ~ "Água Potável e Saneamento",
+                    ods == "ODS 7" ~ "Energia Limpa e Acessível",
+                    ods == "ODS 8" ~ "Trabalho Decente e Crescimento Econômico",
+                    ods == "ODS 9" ~ "Indústria, Inovação e Infraestrutura",
+                    ods == "ODS 10" ~ "Redução das Desigualdades",
+                    ods == "ODS 11" ~ "Cidades e Comunidades Sustentáveis",
+                    ods == "ODS 12" ~ "Consumo e Produção Responsáveis",
+                    ods == "ODS 13" ~ "Ação Contra a Mudança Global do Clima",
+                    ods == "ODS 14" ~ "Vida na Água",
+                    ods == "ODS 15" ~ "Vida Terrestre",
+                    ods == "ODS 16" ~ "Paz, Justiça e Instituições Eficazes",
+                    ods == "ODS 17" ~ "Parcerias e Meios de Implementação",
+                  ), .keep = "all")
+
 
 arquivo_juntado
-arquivo_ods_normalizado |> dplyr::select(matches("value"))
-arquivo  |> dplyr::select(matches("ESTADO|Região"), dplyr::starts_with("ODS") & !matches("normalizado")) |> dplyr::glimpse()
 # Writing
 
-nome_arquivo_csv <- "ranking_sustentabilidade_estados_ods_mediaponderada"
+nome_arquivo_csv <- "ranking_sustentabilidade_estados_ods_mediageralponderada"
 
 caminho_arquivo <- paste0(getwd(), "/", nome_arquivo_csv, ".txt")
 
-readr::write_csv2(arquivo,
+readr::write_csv2(arquivo_juntado,
                  caminho_arquivo)
