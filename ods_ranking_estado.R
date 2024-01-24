@@ -15,14 +15,14 @@ arquivo_folhas <- arquivo_folhas[arquivo_folhas == "Ranking ODS"]
 
 arquivo_vetor <- vector(mode = 'list', length = (length(arquivo_folhas)))
 
-   # getting variables names
+# getting variables names
 
 arquivo_variaveis <- readxl::read_excel(arquivo_local, arquivo_folhas,
                                         col_names = F)
 
 arquivo_variaveis <- arquivo_variaveis[2,]
-    
-   # store properly the values
+
+# store properly the values
 
 arquivo_variaveis_vetor <- vector(length = ncol(arquivo_variaveis))
 
@@ -30,7 +30,7 @@ for(i in seq_along(arquivo_variaveis)){
   arquivo_variaveis_vetor[i] <- as.character(arquivo_variaveis[[i]])
 }
 
-   # reading data
+# reading data
 
 arquivo <- readxl::read_excel(arquivo_local, arquivo_folhas, col_names = F,
                               col_types = "text")
@@ -38,8 +38,8 @@ arquivo <- readxl::read_excel(arquivo_local, arquivo_folhas, col_names = F,
 arquivo <- arquivo |> dplyr::rename_with(~arquivo_variaveis_vetor,
                                          .cols = 1:ncol(arquivo))
 
-      
-      # Preparing to retrieve the ODS column
+
+# Preparing to retrieve the ODS column
 
 arquivo_ods <- arquivo |>
   dplyr::filter(!stringr::str_detect(
@@ -51,7 +51,7 @@ arquivo_ods <- arquivo |>
                       names_to = "ods", values_to = "ods_value") |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
-       # Preparing to retrieve the normalizado column
+# Preparing to retrieve the normalizado column
 
 arquivo_ods_normalizado <- arquivo |>
   dplyr::filter(!stringr::str_detect(
@@ -64,24 +64,24 @@ arquivo_ods_normalizado <- arquivo |>
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
 
-             # Preparing to retrieve the ranking columns both years
+# Preparing to retrieve the ranking columns both years
 
-                   # necessary conditions to extract the correct year update
+# necessary conditions to extract the correct year update
 
-           # the actual year require this condition to return or not any column
+# the actual year require this condition to return or not any column
 imediato_atual_condicao <- if(arquivo |> dplyr::select(
   tidyselect::ends_with(as.character(lubridate::year(lubridate::today())))) |>
   ncol() != 0){"ESTADO|Região"} else {"nao_ha_valor"}
 
 imediato_atual <-
   arquivo |> dplyr::select(matches(imediato_atual_condicao),
-                          tidyselect::ends_with(
-                            as.character(
-                              lubridate::year(lubridate::today())))) |>
+                           tidyselect::ends_with(
+                             as.character(
+                               lubridate::year(lubridate::today())))) |>
   dplyr::select(
     !tidyselect::contains(paste0("Ranking ODS ",
                                  lubridate::year(lubridate::today()))))
-  
+
 
 passado <-
   arquivo |> dplyr::select(matches("ESTADO|Região"),
@@ -99,13 +99,13 @@ retrasado <-
   dplyr::select(!contains(paste0("Ranking ODS ",
                                  lubridate::year(lubridate::today())-2)))
 
-                   # current year necessary to rename the columns
+# current year necessary to rename the columns
 
 arquivo_ranking_atual_ano <- if(ncol(imediato_atual)!=0){ 
   as.character(lubridate::year(lubridate::today()))} else {
     as.character(lubridate::year(lubridate::today())-1)}
 
-                   # retrieving the current year ranking
+# retrieving the current year ranking
 
 arquivo_ranking_atual <-
   (if(ncol(imediato_atual) != 0) {imediato_atual} else {passado}) |>
@@ -119,14 +119,14 @@ arquivo_ranking_atual <-
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
 
-                     # past year necessary to rename the columns
+# past year necessary to rename the columns
 
 arquivo_ranking_passado_ano <- if(ncol(imediato_atual)!=0){ 
   as.character(lubridate::year(lubridate::today())-1)} else {
     as.character(lubridate::year(lubridate::today())-2)}
 
 
-                      # retrieving the last year ranking
+# retrieving the last year ranking
 
 arquivo_ranking_passado <-
   (if(ncol(imediato_atual) != 0) {passado} else {retrasado}) |>
@@ -140,14 +140,14 @@ arquivo_ranking_passado <-
   dplyr::mutate(across(dplyr::matches("Nota|value"), as.numeric))
 
 
-                      # Preparing to retrieve the delta column 
+# Preparing to retrieve the delta column 
 
 arquivo_ods_delta_posicao <- arquivo |>
   dplyr::filter(!stringr::str_detect(
     `ESTADO`,
     "Ranking|ESTADO|Máximo|Mínimo")) |>
   dplyr::select(matches("ESTADO|Região"),matches("Delta")) |>
-  dplyr::select(!contains("Delta de posição ODS")) |>
+  dplyr::select(!("Delta de posição ODS")) |>
   tidyr::pivot_longer(matches("Delta"),
                       names_to = "ods_delta_posicao",
                       values_to = "ods_delta_posicao_value") |>
@@ -209,8 +209,6 @@ arquivo_juntado <- arquivo_juntado |>
                     ods == "ODS 17" ~ "Parcerias e Meios de Implementação",
                   ), .keep = "all")
 
-
-arquivo_juntado
 # Writing
 
 nome_arquivo_csv <- "ranking_sustentabilidade_estados_ods_mediageralponderada"
@@ -218,4 +216,4 @@ nome_arquivo_csv <- "ranking_sustentabilidade_estados_ods_mediageralponderada"
 caminho_arquivo <- paste0(getwd(), "/", nome_arquivo_csv, ".txt")
 
 readr::write_csv2(arquivo_juntado,
-                 caminho_arquivo)
+                  caminho_arquivo)
