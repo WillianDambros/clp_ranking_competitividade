@@ -3,7 +3,7 @@
 endereco <- 
   "https://www.clp.org.br/wp-content/uploads/2023/08/Estados-ESG-e-ODS_2023.xlsx"
 
-arquivo_local <- paste0("C:/cpl/","estado-esg-ods_icms_cnae", ".xlsx")
+arquivo_local <- paste0("C:/cpl/","estado_ranking_esg_ods", ".xlsx")
 
 curl::curl_download(endereco, arquivo_local)
 
