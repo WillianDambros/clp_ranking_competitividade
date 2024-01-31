@@ -151,7 +151,7 @@ arquivo_juntado |>  dplyr::mutate(across(dplyr::matches("valor"), as.numeric))
 
 # Writing
 
-nome_arquivo_csv <- "ranking_esg"
+nome_arquivo_csv <- "esg_ranking_estados"
 
 caminho_arquivo <- paste0(getwd(), "/", nome_arquivo_csv, ".txt")
 
