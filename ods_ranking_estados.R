@@ -211,7 +211,7 @@ arquivo_juntado <- arquivo_juntado |>
 
 # Writing
 
-nome_arquivo_csv <- "ranking_ods_estados"
+nome_arquivo_csv <- "ods_ranking_estados"
 
 caminho_arquivo <- paste0(getwd(), "/", nome_arquivo_csv, ".txt")
 
