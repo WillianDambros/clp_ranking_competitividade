@@ -3,7 +3,7 @@
 endereco <- 
   "https://www.clp.org.br/wp-content/uploads/2023/08/Estados-ESG-e-ODS_2023.xlsx"
 
-arquivo_local <- paste0("C:/cpl/","estado_ranking_esg_ods", ".xlsx")
+arquivo_local <- paste0("C:/cpl/","estados_ranking_esg_ods", ".xlsx")
 
 curl::curl_download(endereco, arquivo_local)
 
@@ -151,7 +151,7 @@ arquivo_juntado |>  dplyr::mutate(across(dplyr::matches("valor"), as.numeric))
 
 # Writing
 
-nome_arquivo_csv <- "esg_ranking_estados"
+nome_arquivo_csv <- "estados_ranking_esg"
 
 caminho_arquivo <- paste0(getwd(), "/", nome_arquivo_csv, ".txt")
 
