@@ -9,6 +9,12 @@
 # endereco_antigo_1 <- paste0("https://www.clp.org.br/wp-content/",
 #"uploads/2023/08/Estados-ESG-e-ODS_2023.xlsx")
 # 3
+
+# https://conteudo.clp.org.br/relatorios-tecnicos-2024
+
+# https://conteudo.clp.org.br/ranking-de-competitividade-2023-relatorios
+
+
 endereco <- paste0("https://clp.org.br/wp-content/uploads/2024/08/",
                    "SEALL_Ranking-dos-Estados-2024_publicacao_rev-2.xlsx")
 
@@ -429,6 +435,11 @@ arquivo <- arquivo |> tidyr::pivot_longer(cols = starts_with("Nota"),
 arquivo |> dplyr::mutate(across(dplyr::matches("valor|Delta"), as.numeric))
 
 estados_ranking_clp <- arquivo
+
+estados_ranking_clp <- estados_ranking_clp |>
+  dplyr::mutate(across(dplyr::matches("valor|Delta"), as.numeric)) |>
+  dplyr::mutate(nota_ano_data = stringr::str_extract(nota_ano, "\\d{4}"),
+                nota_ano_data = lubridate::ymd(paste0(nota_ano_data, "-01-01")))
 
 # Writing
 
