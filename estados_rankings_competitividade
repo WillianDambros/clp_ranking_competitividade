@@ -446,3 +446,43 @@ estados_ranking_clp <- estados_ranking_clp |>
 #nome_arquivo_csv <- "estados_ranking_clp"
 #caminho_arquivo <- paste0(getwd(), "/", nome_arquivo_csv, ".txt")
 #readr::write_csv2(arquivo, caminho_arquivo)
+
+
+# writing PostgreSQL
+
+# Conectar ao banco de dados
+conexao <- RPostgres::dbConnect(RPostgres::Postgres(),
+                                dbname = "#########",
+                                host = "########",
+                                port = "#########",
+                                user =  "##########",
+                                password = "##########")
+
+# Listar as tabelas existentes
+RPostgres::dbListTables(conexao)
+
+# Criar o schema, se não existir
+
+schema_name <- "clp_ranking_competitividade"
+
+DBI::dbSendQuery(conexao, paste0("CREATE SCHEMA IF NOT EXISTS ", schema_name))
+
+# Definir os nomes das tabelas e os dados
+tabelas <- list(
+  estados_ranking_clp = estados_ranking_clp,  
+  estados_ranking_esg = estados_ranking_esg,           
+  estados_ranking_ods = estados_ranking_ods
+)
+
+# Escrever cada tabela no banco de dados
+for (table_name in names(tabelas)) {
+  RPostgres::dbWriteTable(conexao,
+                          name = DBI::Id(schema = schema_name,
+                                         table = table_name),
+                          value = tabelas[[table_name]],
+                          row.names = FALSE,
+                          overwrite = TRUE)
+}
+
+# Desconectar do banco de dados
+RPostgres::dbDisconnect(conexao)
